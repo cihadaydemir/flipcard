@@ -89,7 +89,7 @@ export default function HomeApp() {
       <main className="mx-auto max-w-screen-md w-full p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
         {filtered.length === 0 ? (
           <div className="col-span-full text-center text-sm text-muted-foreground py-20">
-            No cards yet. Tap "Add Card" to create your first one.
+            No cards yet. Tap &quot;Add Card&quot; to create your first one.
           </div>
         ) : (
           filtered.map((c) => (

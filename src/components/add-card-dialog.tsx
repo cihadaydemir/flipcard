@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Plus } from "lucide-react"
 import { addCard, createCard } from "@/lib/db"
 import { compressImage } from "@/lib/image"
+import Image from "next/image"
 
 export default function AddCardDialog({ onAdded }: { onAdded?: () => void }) {
   const [open, setOpen] = useState(false)
@@ -83,7 +84,15 @@ export default function AddCardDialog({ onAdded }: { onAdded?: () => void }) {
               onChange={(e) => setFileA(e.target.files?.[0] ?? null)}
             />
             {previewA && (
-              <img src={previewA} alt="Preview A" className="w-full rounded border" />
+              <Image
+                src={previewA}
+                alt="Preview A"
+                width={800}
+                height={600}
+                className="w-full rounded border object-contain"
+                unoptimized
+                priority={false}
+              />
             )}
           </div>
           <div className="grid gap-2">
@@ -96,7 +105,15 @@ export default function AddCardDialog({ onAdded }: { onAdded?: () => void }) {
               onChange={(e) => setFileB(e.target.files?.[0] ?? null)}
             />
             {previewB && (
-              <img src={previewB} alt="Preview B" className="w-full rounded border" />
+              <Image
+                src={previewB}
+                alt="Preview B"
+                width={800}
+                height={600}
+                className="w-full rounded border object-contain"
+                unoptimized
+                priority={false}
+              />
             )}
           </div>
           <div className="grid gap-2">

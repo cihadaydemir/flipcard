@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Pencil, Trash2 } from "lucide-react"
 import { updateCardTags } from "@/lib/db"
+import Image from "next/image"
 
 export default function Flashcard({
   id,
@@ -150,12 +151,28 @@ export default function Flashcard({
         >
           <Card className="absolute inset-0 overflow-hidden [backface-visibility:hidden]">
             {urls.a && (
-              <img src={urls.a} alt="Side A" className="size-full object-contain" />
+              <Image
+                src={urls.a}
+                alt="Side A"
+                fill
+                sizes="(max-width: 640px) 100vw, 50vw"
+                className="object-contain"
+                unoptimized
+                priority={false}
+              />
             )}
           </Card>
           <Card className="absolute inset-0 overflow-hidden [backface-visibility:hidden] [transform:rotateY(180deg)]">
             {urls.b && (
-              <img src={urls.b} alt="Side B" className="size-full object-contain" />
+              <Image
+                src={urls.b}
+                alt="Side B"
+                fill
+                sizes="(max-width: 640px) 100vw, 50vw"
+                className="object-contain"
+                unoptimized
+                priority={false}
+              />
             )}
           </Card>
         </div>
