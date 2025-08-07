@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Plus } from "lucide-react"
-import { addCard, createCard } from "@/lib/db"
+import { addCard, createCard, getAllTags } from "@/lib/db"
 import { compressImage } from "@/lib/image"
 import Image from "next/image"
 
@@ -19,6 +19,8 @@ export default function AddCardDialog({ onAdded }: { onAdded?: () => void }) {
   const [tags, setTags] = useState<string[]>([])
   const [previewA, setPreviewA] = useState<string>("")
   const [previewB, setPreviewB] = useState<string>("")
+  const [allTags, setAllTags] = useState<string[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
 
   useEffect(() => {
     if (fileA) {
@@ -36,10 +38,30 @@ export default function AddCardDialog({ onAdded }: { onAdded?: () => void }) {
     } else setPreviewB("")
   }, [fileB])
 
+  useEffect(() => {
+    // Load existing tags when dialog opens
+    if (!open) return
+    ;(async () => {
+      try {
+        const existing = await getAllTags()
+        setAllTags(existing)
+      } catch (e) {
+        // ignore
+      }
+    })()
+  }, [open])
+
   function addTagFromInput() {
     const t = tagInput.trim()
     if (t && !tags.includes(t)) setTags([...tags, t])
     setTagInput("")
+    setShowSuggestions(false)
+  }
+
+  function selectSuggestedTag(t: string) {
+    if (!tags.includes(t)) setTags([...tags, t])
+    setTagInput("")
+    setShowSuggestions(false)
   }
 
   function removeTag(t: string) {
@@ -59,11 +81,28 @@ export default function AddCardDialog({ onAdded }: { onAdded?: () => void }) {
     setFileB(null)
     setTags([])
     setTagInput("")
+    setShowSuggestions(false)
     onAdded?.()
   }
 
+  const filteredSuggestions = allTags
+    .filter((t) =>
+      tagInput
+        ? t.toLowerCase().includes(tagInput.toLowerCase())
+        : true
+    )
+    .filter((t) => !tags.includes(t))
+    .slice(0, 8)
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(v) => {
+      setOpen(v)
+      if (!v) {
+        // reset suggestion UI on close
+        setShowSuggestions(false)
+        setTagInput("")
+      }
+    }}>
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 size-4" /> Add Card
@@ -118,22 +157,50 @@ export default function AddCardDialog({ onAdded }: { onAdded?: () => void }) {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="tags">Tags</Label>
-            <div className="flex gap-2">
-              <Input
-                id="tags"
-                placeholder="e.g. Arabic, Conversation"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault()
-                    addTagFromInput()
-                  }
-                }}
-              />
-              <Button type="button" variant="secondary" onClick={addTagFromInput}>
-                Add
-              </Button>
+            <div className="relative">
+              <div className="flex gap-2">
+                <Input
+                  id="tags"
+                  placeholder="e.g. Arabic, Conversation"
+                  value={tagInput}
+                  onChange={(e) => {
+                    setTagInput(e.target.value)
+                    setShowSuggestions(true)
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => {
+                    // Delay to allow click on suggestion
+                    setTimeout(() => setShowSuggestions(false), 120)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault()
+                      addTagFromInput()
+                    }
+                  }}
+                />
+                <Button type="button" variant="secondary" onClick={addTagFromInput}>
+                  Add
+                </Button>
+              </div>
+              {showSuggestions && filteredSuggestions.length > 0 && (
+                <div className="absolute z-20 mt-1 w-full rounded-md border bg-background shadow">
+                  <ul className="max-h-48 overflow-auto py-1 text-sm">
+                    {filteredSuggestions.map((t) => (
+                      <li key={t}>
+                        <button
+                          type="button"
+                          className="w-full px-3 py-2 text-left hover:bg-accent hover:text-accent-foreground"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => selectSuggestedTag(t)}
+                        >
+                          {t}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
             <div className="flex flex-wrap gap-2">
               {tags.map((t) => (
