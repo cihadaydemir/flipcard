@@ -19,6 +19,27 @@ export const metadata: Metadata = {
   description: "Offline flashcards from your photos",
   applicationName: "Flipcard",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/ios/16.png", sizes: "16x16", type: "image/png" },
+      { url: "/ios/32.png", sizes: "32x32", type: "image/png" },
+      { url: "/android/android-launchericon-192-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      { url: "/ios/180.png", sizes: "180x180" },
+      { url: "/ios/167.png", sizes: "167x167" },
+      { url: "/ios/152.png", sizes: "152x152" },
+      { url: "/ios/120.png", sizes: "120x120" },
+    ],
+    shortcut: [
+      { url: "/ios/180.png" },
+    ],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Flipcard",
+  },
 };
 
 export const viewport: Viewport = {
