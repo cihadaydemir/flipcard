@@ -1,29 +1,20 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import Flashcard from "@/components/flashcard"
 import AddCardDialog from "@/components/add-card-dialog"
 import ModeToggle from "@/components/mode-toggle"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Shuffle } from "lucide-react"
-import { deleteCard, getAllTags, getCards, type CardRecord } from "@/lib/db"
+import { useAllTagsQuery, useCardsQuery, useDeleteCardMutation } from "@/lib/queries"
 
 export default function HomeApp() {
-  const [cards, setCards] = useState<CardRecord[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [shuffle, setShuffle] = useState(false)
-  const [allTags, setAllTags] = useState<string[]>([])
-
-  async function refresh() {
-    const [cs, tags] = await Promise.all([getCards(), getAllTags()])
-    setCards(cs.sort((a, b) => b.createdAt - a.createdAt))
-    setAllTags(tags)
-  }
-
-  useEffect(() => {
-    refresh()
-  }, [])
+  const { data: cards = [] } = useCardsQuery()
+  const { data: allTags = [] } = useAllTagsQuery()
+  const deleteMutation = useDeleteCardMutation()
 
   const filtered = useMemo(() => {
     let arr = cards
@@ -60,7 +51,7 @@ export default function HomeApp() {
             >
               <Shuffle className="mr-2 size-4" /> {shuffle ? "Shuffling" : "Shuffle"}
             </Button>
-            <AddCardDialog onAdded={refresh} />
+            <AddCardDialog />
             <ModeToggle />
           </div>
         </div>
@@ -99,12 +90,8 @@ export default function HomeApp() {
               front={c.sideA}
               back={c.sideB}
               tags={c.tags}
-              onTagsUpdated={async () => {
-                await refresh()
-              }}
               onDelete={async () => {
-                await deleteCard(c.id)
-                refresh()
+                await deleteMutation.mutateAsync(c.id)
               }}
             />
           ))

@@ -7,11 +7,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Plus } from "lucide-react"
-import { addCard, createCard, getAllTags } from "@/lib/db"
+import { createCard } from "@/lib/db"
+import { useAddCardMutation, useAllTagsQuery } from "@/lib/queries"
 import { compressImage } from "@/lib/image"
 import Image from "next/image"
 
-export default function AddCardDialog({ onAdded }: { onAdded?: () => void }) {
+export default function AddCardDialog() {
   const [open, setOpen] = useState(false)
   const [fileA, setFileA] = useState<File | null>(null)
   const [fileB, setFileB] = useState<File | null>(null)
@@ -19,8 +20,9 @@ export default function AddCardDialog({ onAdded }: { onAdded?: () => void }) {
   const [tags, setTags] = useState<string[]>([])
   const [previewA, setPreviewA] = useState<string>("")
   const [previewB, setPreviewB] = useState<string>("")
-  const [allTags, setAllTags] = useState<string[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const { data: allTags = [] } = useAllTagsQuery({ enabled: open })
+  const addMutation = useAddCardMutation()
 
   useEffect(() => {
     if (fileA) {
@@ -38,18 +40,7 @@ export default function AddCardDialog({ onAdded }: { onAdded?: () => void }) {
     } else setPreviewB("")
   }, [fileB])
 
-  useEffect(() => {
-    // Load existing tags when dialog opens
-    if (!open) return
-    ;(async () => {
-      try {
-        const existing = await getAllTags()
-        setAllTags(existing)
-      } catch (e) {
-        // ignore
-      }
-    })()
-  }, [open])
+  // Tags are fetched via useAllTagsQuery only when dialog is open
 
   function addTagFromInput() {
     const t = tagInput.trim()
@@ -75,14 +66,13 @@ export default function AddCardDialog({ onAdded }: { onAdded?: () => void }) {
       compressImage(fileB),
     ])
     const rec = createCard({ sideA: blobA, sideB: blobB, tags })
-    await addCard(rec)
+    await addMutation.mutateAsync(rec)
     setOpen(false)
     setFileA(null)
     setFileB(null)
     setTags([])
     setTagInput("")
     setShowSuggestions(false)
-    onAdded?.()
   }
 
   const filteredSuggestions = allTags
@@ -217,7 +207,7 @@ export default function AddCardDialog({ onAdded }: { onAdded?: () => void }) {
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={onSave} disabled={!fileA || !fileB}>
+          <Button onClick={onSave} disabled={!fileA || !fileB || addMutation.isPending}>
             Save
           </Button>
         </DialogFooter>

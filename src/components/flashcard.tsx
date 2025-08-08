@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Pencil, Trash2 } from "lucide-react"
-import { updateCardTags } from "@/lib/db"
+import { useUpdateCardTagsMutation } from "@/lib/queries"
 import Image from "next/image"
 
 export default function Flashcard({
@@ -16,20 +16,19 @@ export default function Flashcard({
   back,
   tags,
   onDelete,
-  onTagsUpdated,
 }: {
   id?: string
   front: Blob
   back: Blob
   tags?: string[]
   onDelete?: () => void
-  onTagsUpdated?: (tags: string[]) => void
 }) {
   const [flipped, setFlipped] = useState(false)
   const [urls, setUrls] = useState<{ a: string; b: string }>({ a: "", b: "" })
   const [editOpen, setEditOpen] = useState(false)
   const [tagInput, setTagInput] = useState("")
   const [localTags, setLocalTags] = useState<string[]>(tags ?? [])
+  const updateMutation = useUpdateCardTagsMutation()
 
   useEffect(() => {
     const a = URL.createObjectURL(front)
@@ -57,8 +56,7 @@ export default function Flashcard({
 
   async function saveTags() {
     if (!id) return setEditOpen(false)
-    await updateCardTags(id, localTags)
-    onTagsUpdated?.(localTags)
+    await updateMutation.mutateAsync({ id, tags: localTags })
     setEditOpen(false)
   }
 
