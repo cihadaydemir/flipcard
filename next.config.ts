@@ -1,12 +1,10 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  async rewrites() {
-    return [
-      { source: "/apple-touch-icon.png", destination: "/apple-touch-icon-precomposed.png" },
-    ]
-  },
-};
+	/* config options here */
+	async rewrites() {
+		return [{ source: "/apple-touch-icon.png", destination: "/apple-touch-icon-precomposed.png" }]
+	},
+}
 
-export default nextConfig;
+export default nextConfig
