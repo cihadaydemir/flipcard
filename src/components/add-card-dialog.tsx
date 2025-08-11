@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command"
 import { Plus } from "lucide-react"
 import { createCard } from "@/lib/db"
 import { useAddCardMutation, useAllTagsQuery } from "@/lib/queries"
@@ -143,51 +145,49 @@ export default function AddCardDialog() {
 					</div>
 					<div className="grid gap-2">
 						<Label htmlFor="tags">Tags</Label>
-						<div className="relative">
-							<div className="flex gap-2">
-								<Input
-									id="tags"
-									placeholder="e.g. Arabic, Conversation"
-									value={tagInput}
-									onChange={(e) => {
-										setTagInput(e.target.value)
-										setShowSuggestions(true)
-									}}
-									onFocus={() => setShowSuggestions(true)}
-									onBlur={() => {
-										// Delay to allow click on suggestion
-										setTimeout(() => setShowSuggestions(false), 120)
-									}}
-									onKeyDown={(e) => {
-										if (e.key === "Enter") {
-											e.preventDefault()
-											addTagFromInput()
-										}
-									}}
-								/>
-								<Button type="button" variant="secondary" onClick={addTagFromInput}>
-									Add
-								</Button>
-							</div>
-							{showSuggestions && filteredSuggestions.length > 0 && (
-								<div className="absolute z-20 mt-1 w-full rounded-md border bg-background shadow">
-									<ul className="max-h-48 overflow-auto py-1 text-sm">
-										{filteredSuggestions.map((t) => (
-											<li key={t}>
-												<button
-													type="button"
-													className="w-full px-3 py-2 text-left hover:bg-accent hover:text-accent-foreground"
-													onMouseDown={(e) => e.preventDefault()}
-													onClick={() => selectSuggestedTag(t)}
-												>
-													{t}
-												</button>
-											</li>
-										))}
-									</ul>
+						<Popover open={showSuggestions && filteredSuggestions.length > 0} onOpenChange={setShowSuggestions}>
+							<PopoverAnchor asChild>
+								<div className="flex gap-2">
+									<Input
+										id="tags"
+										placeholder="e.g. Arabic, Conversation"
+										value={tagInput}
+										onChange={(e) => {
+											setTagInput(e.target.value)
+											setShowSuggestions(true)
+										}}
+										onFocus={() => setShowSuggestions(true)}
+										onBlur={() => {
+											// Delay to allow click on suggestion
+											setTimeout(() => setShowSuggestions(false), 120)
+										}}
+										onKeyDown={(e) => {
+											if (e.key === "Enter") {
+												e.preventDefault()
+												addTagFromInput()
+											}
+										}}
+									/>
+									<Button type="button" variant="secondary" onClick={addTagFromInput}>
+										Add
+									</Button>
 								</div>
-							)}
-						</div>
+							</PopoverAnchor>
+							<PopoverContent className="p-0 w-72 sm:w-80">
+								<Command>
+									<CommandEmpty>No matches.</CommandEmpty>
+									<CommandList>
+										<CommandGroup heading="Suggestions">
+											{filteredSuggestions.map((t) => (
+												<CommandItem key={t} value={t} onSelect={() => selectSuggestedTag(t)}>
+													{t}
+												</CommandItem>
+											))}
+										</CommandGroup>
+									</CommandList>
+								</Command>
+							</PopoverContent>
+						</Popover>
 						<div className="flex flex-wrap gap-2">
 							{tags.map((t) => (
 								<Badge

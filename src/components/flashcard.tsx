@@ -175,9 +175,9 @@ export default function Flashcard({
 			{tags && tags.length > 0 && (
 				<div className="absolute bottom-2 left-2 right-2 z-10 flex flex-wrap gap-1 pointer-events-none">
 					{tags.map((t) => (
-						<span key={t} className="text-xs bg-background/70 border px-1.5 py-0.5 rounded">
+						<Badge key={t} variant="secondary" className="pointer-events-none">
 							{t}
-						</span>
+						</Badge>
 					))}
 				</div>
 			)}
