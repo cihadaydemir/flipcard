@@ -145,7 +145,7 @@ export default function AddCardDialog() {
 					</div>
 					<div className="grid gap-2">
 						<Label htmlFor="tags">Tags</Label>
-						<Popover open={showSuggestions && filteredSuggestions.length > 0} onOpenChange={setShowSuggestions}>
+						<Popover open={showSuggestions && filteredSuggestions.length > 0}>
 							<PopoverAnchor asChild>
 								<div className="flex gap-2">
 									<Input
@@ -173,7 +173,7 @@ export default function AddCardDialog() {
 									</Button>
 								</div>
 							</PopoverAnchor>
-							<PopoverContent className="p-0 w-72 sm:w-80">
+							<PopoverContent className="p-0 w-72 sm:w-80" onOpenAutoFocus={(e) => e.preventDefault()}>
 								<Command>
 									<CommandEmpty>No matches.</CommandEmpty>
 									<CommandList>
