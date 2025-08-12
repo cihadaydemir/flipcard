@@ -63,15 +63,21 @@ export default function AddCardDialog() {
 
 	async function onSave() {
 		if (!fileA || !fileB) return
-		const [blobA, blobB] = await Promise.all([compressImage(fileA), compressImage(fileB)])
-		const rec = createCard({ sideA: blobA, sideB: blobB, tags })
-		await addMutation.mutateAsync(rec)
-		setOpen(false)
-		setFileA(null)
-		setFileB(null)
-		setTags([])
-		setTagInput("")
-		setShowSuggestions(false)
+		try {
+			const [blobA, blobB] = await Promise.all([compressImage(fileA), compressImage(fileB)])
+			const rec = createCard({ sideA: blobA, sideB: blobB, tags })
+			// Ensure DB write completes so lists update deterministically in tests/UI.
+			await addMutation.mutateAsync(rec)
+		} catch (err) {
+			console.error('Preparing or saving card failed', err)
+		} finally {
+			setOpen(false)
+			setFileA(null)
+			setFileB(null)
+			setTags([])
+			setTagInput("")
+			setShowSuggestions(false)
+		}
 	}
 
 	const filteredSuggestions = allTags
