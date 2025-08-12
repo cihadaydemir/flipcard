@@ -1,18 +1,32 @@
 export async function compressImage(file: File, maxSize = 1400, quality = 0.85): Promise<Blob> {
-	const img = await loadImageFromFile(file)
-	const { w, h } = scaleToMax(img.width, img.height, maxSize)
+  // SVGs can be drawn to canvas inconsistently across engines and may taint the canvas.
+  // For robustness in tests and prod, return a fresh Blob with the same bytes to avoid File subclass quirks in IDB.
+  if (file.type === "image/svg+xml") {
+    const buf = await file.arrayBuffer()
+    return new Blob([buf], { type: file.type })
+  }
 
-	const canvas = document.createElement("canvas")
-	canvas.width = w
-	canvas.height = h
-	const ctx = canvas.getContext("2d")!
-	ctx.drawImage(img, 0, 0, w, h)
+  try {
+    const img = await loadImageFromFile(file)
+    const { w, h } = scaleToMax(img.width, img.height, maxSize)
 
-	const mime = file.type === "image/png" ? "image/png" : "image/jpeg"
-	const blob: Blob = await new Promise((resolve, reject) => {
-		canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), mime, quality)
-	})
-	return blob
+    const canvas = document.createElement("canvas")
+    canvas.width = w
+    canvas.height = h
+    const ctx = canvas.getContext("2d")!
+    ctx.drawImage(img, 0, 0, w, h)
+
+    const mime = file.type === "image/png" ? "image/png" : "image/jpeg"
+    const blob: Blob = await new Promise((resolve, reject) => {
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), mime, quality)
+    })
+    return blob
+  } catch (err) {
+    // Fallback: if compression fails for any reason, return a fresh Blob with the original bytes.
+    console.warn("compressImage failed, returning original file", err)
+    const buf = await file.arrayBuffer()
+    return new Blob([buf], { type: file.type })
+  }
 }
 
 function loadImageFromFile(file: File): Promise<HTMLImageElement> {
